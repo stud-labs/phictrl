@@ -3,7 +3,8 @@
 
 \ $40010800 constant GPIO-BASE
 
-GPIOC constant GPIO-BASE
+\ GPIOC constant GPIO-BASE
+GPIOA constant GPIO-BASE
 
 GPIO-BASE $00 + constant GPIO.CRL   \ reset $44444444 port Conf Register Low
 GPIO-BASE $04 + constant GPIO.CRH   \ reset $44444444 port Conf Register High
@@ -24,10 +25,10 @@ GPIO-BASE $14 + constant GPIO.BRR   \ reset 0         port Bit Reset Register
 
 : blinky ( -- )
 
-  %01 13 io-mode! \ Set LED Pin mode to output
+  %01 6 io-mode! \ Set LED Pin mode to output
 
   begin
-    1 13 lshift GPIO.ODR xor!
+    1 6 lshift GPIO.ODR xor!
     500000 0 do loop
   key? until
 ;
