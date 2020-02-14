@@ -61,24 +61,26 @@ $40010C00 constant GPIOB
 : GPIO.BSRR ( n -- n ) $10 + ;
 : GPIO.BRR ( n -- n ) $14 + ;
 
-: gpio.set ( addr npin out -- n )
-  swap \ addr out npin
-  2 lshift
-  dup
-  $f swap
-  lshift  \ addr code
-  .s
-  bin.
-  \ swap \ code addr
-  \ GPIO.CRL bis!
+: gpio.set ( addr out npin -- n )
+  rot GPIO.CRL >r
+
+  2 lshift \ o np*4
+  dup      \ o np4 np4
+  $f swap  \ o np4 $F np4
+  lshift not  \ o np4 F0FFF
+  r@ @ and \ o np4 F0F&av
+  r@ !     \ o np4
+  lshift   \ 0o0
+  r@ @ or  \ xox
+  r> !
 ;
 
 : reg. ( word -- ) bin. ;
 
 : init.gpios
-  GPIOA 6 1 gpio.set
-  GPIOA 7 1 gpio.set
-  GPIOB 0 1 gpio.set
+  GPIOA 1 6 gpio.set
+  GPIOA 1 7 gpio.set
+  GPIOB 1 0 gpio.set
 ;
 
 : t init.gpios ;
