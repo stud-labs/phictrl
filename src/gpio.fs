@@ -61,7 +61,7 @@ $40010C00 constant GPIOB
 : GPIO.BSRR ( n -- n ) $10 + ;
 : GPIO.BRR ( n -- n ) $14 + ;
 
-: gpio.set ( addr out npin -- n )
+: gpio.set ( addr out npin -- )
   rot GPIO.CRL >r
 
   2 lshift \ o np*4
@@ -72,6 +72,17 @@ $40010C00 constant GPIOB
   r@ !     \ o np4
   lshift   \ 0o0
   r@ @ or  \ xox
+  r> !
+;
+
+: gpio.out ( GPIO-addr out pin -- )
+  rot GPIO.ODR >r \ out pin
+  dup 1           \ o p p 1
+  swap lshift not \ o p 1110111
+  r@ @      \ o p 11110111 xxxxx
+  and       \ o p xxxx0xxx
+  -rot      \ xxxx0xxx o p
+  lshift or \ xxxxoxxxx
   r> !
 ;
 
