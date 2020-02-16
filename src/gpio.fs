@@ -72,11 +72,17 @@ $40010C00 constant GPIOB
   IR.IC 0 gpio.set
 ;
 
+: sleep
+  50000 0 do nop loop
+;
+
 : t init.gpios ;
 : t.ir
+  t
   init.gpios base @
   begin
-    IR.IC gpio.in . key?
-  until
+    IR.IC gpio.in >r LED.GREEN r> gpio.out
+    IR.IC gpio.in bin. cr sleep \ if ." ." else ." _" then sleep
+    key? until
   base !
 ;
