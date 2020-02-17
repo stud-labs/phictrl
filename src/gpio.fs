@@ -10,6 +10,12 @@ $40010C00 constant GPIOB
 : GPIO.BSRR ( n -- n ) $10 + ;
 : GPIO.BRR ( n -- n ) $14 + ;
 
+: prep.cnf
+  dup 0= if
+    %0100 or
+  then
+;
+
 : gpio.set ( addr npin out? -- )
   rot GPIO.CRL >r
   swap     \ out? npin
@@ -20,8 +26,11 @@ $40010C00 constant GPIOB
   lshift not  \ o np4 F0FFF
   r@ @ and \ o np4 F0F&av
   r@ !     \ o np4
-  lshift   \ 0o0
-  r@ @ or  \ xox
+  swap
+  prep.cnf \ add cnf configuration depending out 0|1
+  swap
+  lshift   \ 0co0
+  r@ @ or  \ xcox
   r> !
 ;
 
@@ -37,8 +46,12 @@ $40010C00 constant GPIOB
   r> !
 ;
 
+: gpio.in.val ( GPIOx pin -- pin VAL )
+  swap GPIO.IDR @
+;
+
 : gpio.in ( GPIOX pin -- 0|1 )
-  swap GPIO.IDR @ \ pin xxxvxxx
+  gpio.in.val \ pin xxxvxxx
   over \ pin xvx pin
   1 swap \ pin xvx 1 pin
   lshift and \ pin 000v000
@@ -72,14 +85,25 @@ $40010C00 constant GPIOB
   IR.IC 0 gpio.set
 ;
 
+
+\ ------------- testing code ----------
+
 : sleep
   50000 0 do nop loop
 ;
 
+: TEST.PIN ( -- GPIOA pin ) GPIOA 4 ;
+
 : t init.gpios ;
+
 : t.ir
   t
-  init.gpios base @
+
+  TEST.PIN 0 gpio.set \ set it to input
+  GPIOA GPIO.CRL CRb.
+
+  \ init.gpios
+  base @
   begin
     IR.IC gpio.in >r LED.GREEN r> gpio.out
     IR.IC gpio.in bin. cr sleep \ if ." ." else ." _" then sleep
