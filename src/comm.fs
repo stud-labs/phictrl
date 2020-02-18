@@ -1,12 +1,14 @@
 \ COMMUNICATION USART1,2,3
 
+reset
+
 $40013800 constant USART1
 $40004400 constant USART2 \ FIXME: Check DOC
 $40004800 constant USART3 \ FIXME: Check DOC
 
 
-\ : USART.SR ( USARTx -- USARTx_SR ) $00 + ; \ Status Register
-: USART.SR ( USARTx -- USARTx_SR ) ; \ Status Register
+
+: USART.STR ( USARTx -- USARTx_SR ) ;  \ Status Register BUG FIX
 : USART.DR ( USARTx -- USARTx_DR ) $04 + ; \ Data Register
 : USART.BRR ( USARTx -- USARTx_BRR ) $08 + ; \ Bit Rate Register
 : USART.CR1 ( USARTx -- USARTx_CR1 ) $0C + ; \ Control Register 1
@@ -58,7 +60,7 @@ $40004800 constant USART3 \ FIXME: Check DOC
 ;
 
 : usart.sr ( bitno USARTx -- T|F )
-  USART.SR tb@
+  USART.STR tb@
 ;
 
 : usart.sr.cts ( USARTx -- T|F ) \ Clear To Send detected.
@@ -101,9 +103,20 @@ $40004800 constant USART3 \ FIXME: Check DOC
   0 swap usart.sr
 ;
 
-
+: usart.dr.send ( char USARTx -- )
+  swap dup swap \ USARTx char USARTx
+  USART.DR !
+  USART.STR
+;
 
 
 \ TESTING Stuff
 
 $44444444 variable test
+
+: ct \ COMM test
+  USART2
+  dub usart.ue.set \ Switch on the USART2
+  dub USART.BRR 69 swap ! \ Set 115207 Bit rate
+
+;
