@@ -8,7 +8,7 @@ $40004800 constant USART3 \ FIXME: Check DOC
 
 
 
-: USART.STR ( USARTx -- USARTx_SR ) ;  \ Status Register BUG FIX
+: USART.SR ( USARTx -- USARTx_SR ) ;  \ Status Register BUG FIX
 : USART.DR ( USARTx -- USARTx_DR ) $04 + ; \ Data Register
 : USART.BRR ( USARTx -- USARTx_BRR ) $08 + ; \ Bit Rate Register
 : USART.CR1 ( USARTx -- USARTx_CR1 ) $0C + ; \ Control Register 1
@@ -59,54 +59,55 @@ $40004800 constant USART3 \ FIXME: Check DOC
   bit@
 ;
 
-: usart.sr ( bitno USARTx -- T|F )
-  USART.STR tb@
+: usart.sr.get ( bitno USARTx -- T|F )
+  USART.SR tb@
 ;
 
 : usart.sr.cts ( USARTx -- T|F ) \ Clear To Send detected.
-  9 swap usart.sr
+  9 swap usart.sr.get
 ;
 
 : usart.sr.lbd ( USARTx -- T|F ) \ Line Break Detected.
-  8 swap usart.sr
+  8 swap usart.sr.get
 ;
 
 : usart.sr.txe ( USARTx -- T|F ) \ Transmission buffer is empty?
-  7 swap usart.sr
+  7 swap usart.sr.get
 ;
 
 : usart.sr.tc ( USARTx -- T|F ) \ Transmission complete?
-  6 swap usart.sr
+  6 swap usart.sr.get
 ;
 
 : usart.sr.rxne ( USARTx -- T|F ) \ Is the Received byte has been sent to Data Register?
-  5 swap usart.sr
+  5 swap usart.sr.get
 ;
 
 : usart.sr.idle ( USARTx -- T|F ) \ Received IDLE byte.
-  4 swap usart.sr
+  4 swap usart.sr.get
 ;
 
 : usart.sr.ore ( USARTx -- T|F ) \ Overrun detected during receiving.
-  3 swap usart.sr
+  3 swap usart.sr.get
 ;
 
 : usart.sr.ne ( USARTx -- T|F ) \ Noise error.
-  2 swap usart.sr
+  2 swap usart.sr.get
 ;
 
 : usart.sr.fe ( USARTx -- T|F ) \ Framing error.
-  1 swap usart.sr
+  1 swap usart.sr.get
 ;
 
 : usart.sr.pe ( USARTx -- T|F ) \ Parity Error.
-  0 swap usart.sr
+  0 swap usart.sr.get
 ;
 
 : usart.dr.send ( char USARTx -- )
   swap dup swap \ USARTx char USARTx
   USART.DR !
-  USART.STR
+  USART.SR
+  drop
 ;
 
 
@@ -116,7 +117,6 @@ $44444444 variable test
 
 : ct \ COMM test
   USART2
-  dub usart.ue.set \ Switch on the USART2
-  dub USART.BRR 69 swap ! \ Set 115207 Bit rate
-
+  dup usart.ue.set \ Switch on the USART2
+  dup USART.BRR $45 swap ! \ Set 115207 Bit rate
 ;
