@@ -1,5 +1,5 @@
 compiletoflash
-$A0000000 constant FSMC  
+$A0000000 constant FSMC
        FSMC $0 + constant FSMC_BCR1
        FSMC $4 + constant FSMC_BTR1
        FSMC $8 + constant FSMC_BCR2
@@ -27,14 +27,14 @@ $A0000000 constant FSMC
        FSMC $10C + constant FSMC_BWTR2
        FSMC $114 + constant FSMC_BWTR3
        FSMC $11C + constant FSMC_BWTR4
-        
-	
-     $40007000 constant PWR  
+
+
+     $40007000 constant PWR
        PWR $0 + constant PWR_CR
        PWR $4 + constant PWR_CSR
-        
-	
-     $40021000 constant RCC  
+
+
+     $40021000 constant RCC
        RCC $0 + constant RCC_CR
        RCC $4 + constant RCC_CFGR
        RCC $8 + constant RCC_CIR
@@ -45,9 +45,9 @@ $A0000000 constant FSMC
        RCC $1C + constant RCC_APB1ENR
        RCC $20 + constant RCC_BDCR
        RCC $24 + constant RCC_CSR
-        
-	
-     $40010800 constant GPIOA  
+
+
+     $40010800 constant GPIOA
        GPIOA $0 + constant GPIOA_CRL
        GPIOA $4 + constant GPIOA_CRH
        GPIOA $8 + constant GPIOA_IDR
@@ -55,27 +55,27 @@ $A0000000 constant FSMC
        GPIOA $10 + constant GPIOA_BSRR
        GPIOA $14 + constant GPIOA_BRR
        GPIOA $18 + constant GPIOA_LCKR
-        
-	
-     $40010C00 constant GPIOB  
-        
-	
-     $40011000 constant GPIOC  
-        
-	
-     $40011400 constant GPIOD  
-        
-	
-     $40011800 constant GPIOE  
-        
-	
-     $40011C00 constant GPIOF  
-        
-	
-     $40012000 constant GPIOG  
-        
-	
-     $40010000 constant AFIO  
+
+
+     $40010C00 constant GPIOB
+
+
+     $40011000 constant GPIOC
+
+
+     $40011400 constant GPIOD
+
+
+     $40011800 constant GPIOE
+
+
+     $40011C00 constant GPIOF
+
+
+     $40012000 constant GPIOG
+
+
+     $40010000 constant AFIO
        AFIO $0 + constant AFIO_EVCR
        AFIO $4 + constant AFIO_MAPR
        AFIO $8 + constant AFIO_EXTICR1
@@ -83,18 +83,18 @@ $A0000000 constant FSMC
        AFIO $10 + constant AFIO_EXTICR3
        AFIO $14 + constant AFIO_EXTICR4
        AFIO $1C + constant AFIO_MAPR2
-        
-	
-     $40010400 constant EXTI  
+
+
+     $40010400 constant EXTI
        EXTI $0 + constant EXTI_IMR
        EXTI $4 + constant EXTI_EMR
        EXTI $8 + constant EXTI_RTSR
        EXTI $C + constant EXTI_FTSR
        EXTI $10 + constant EXTI_SWIER
        EXTI $14 + constant EXTI_PR
-        
-	
-     $40020000 constant DMA1  
+
+
+     $40020000 constant DMA1
        DMA1 $0 + constant DMA1_ISR
        DMA1 $4 + constant DMA1_IFCR
        DMA1 $8 + constant DMA1_CCR1
@@ -125,12 +125,12 @@ $A0000000 constant FSMC
        DMA1 $84 + constant DMA1_CNDTR7
        DMA1 $88 + constant DMA1_CPAR7
        DMA1 $8C + constant DMA1_CMAR7
-        
-	
-     $40020400 constant DMA2  
-        
-	
-     $40018000 constant SDIO  
+
+
+     $40020400 constant DMA2
+
+
+     $40018000 constant SDIO
        SDIO $0 + constant SDIO_POWER
        SDIO $4 + constant SDIO_CLKCR
        SDIO $8 + constant SDIO_ARG
@@ -149,9 +149,9 @@ $A0000000 constant FSMC
        SDIO $3C + constant SDIO_MASK
        SDIO $48 + constant SDIO_FIFOCNT
        SDIO $80 + constant SDIO_FIFO
-        
-	
-     $40002800 constant RTC  
+
+
+     $40002800 constant RTC
        RTC $0 + constant RTC_CRH
        RTC $4 + constant RTC_CRL
        RTC $8 + constant RTC_PRLH
@@ -162,9 +162,9 @@ $A0000000 constant FSMC
        RTC $1C + constant RTC_CNTL
        RTC $20 + constant RTC_ALRH
        RTC $24 + constant RTC_ALRL
-        
-	
-     $40006C04 constant BKP  
+
+
+     $40006C04 constant BKP
        BKP $0 + constant BKP_DR1
        BKP $4 + constant BKP_DR2
        BKP $8 + constant BKP_DR3
@@ -210,22 +210,22 @@ $A0000000 constant FSMC
        BKP $28 + constant BKP_RTCCR
        BKP $2C + constant BKP_CR
        BKP $30 + constant BKP_CSR
-        
-	
-     $40003000 constant IWDG  
+
+
+     $40003000 constant IWDG
        IWDG $0 + constant IWDG_KR
        IWDG $4 + constant IWDG_PR
        IWDG $8 + constant IWDG_RLR
        IWDG $C + constant IWDG_SR
-        
-	
-     $40002C00 constant WWDG  
+
+
+     $40002C00 constant WWDG
        WWDG $0 + constant WWDG_CR
        WWDG $4 + constant WWDG_CFR
        WWDG $8 + constant WWDG_SR
-        
-	
-     $40012C00 constant TIM1  
+
+
+     $40012C00 constant TIM1
        TIM1 $0 + constant TIM1_CR1
        TIM1 $4 + constant TIM1_CR2
        TIM1 $8 + constant TIM1_SMCR
@@ -248,12 +248,12 @@ $A0000000 constant FSMC
        TIM1 $4C + constant TIM1_DMAR
        TIM1 $30 + constant TIM1_RCR
        TIM1 $44 + constant TIM1_BDTR
-        
-	
-     $40013400 constant TIM8  
-        
-	
-     $40000000 constant TIM2  
+
+
+     $40013400 constant TIM8
+
+
+     $40000000 constant TIM2
        TIM2 $0 + constant TIM2_CR1
        TIM2 $4 + constant TIM2_CR2
        TIM2 $8 + constant TIM2_SMCR
@@ -274,18 +274,18 @@ $A0000000 constant FSMC
        TIM2 $40 + constant TIM2_CCR4
        TIM2 $48 + constant TIM2_DCR
        TIM2 $4C + constant TIM2_DMAR
-        
-	
-     $40000400 constant TIM3  
-        
-	
-     $40000800 constant TIM4  
-        
-	
-     $40000C00 constant TIM5  
-        
-	
-     $40014C00 constant TIM9  
+
+
+     $40000400 constant TIM3
+
+
+     $40000800 constant TIM4
+
+
+     $40000C00 constant TIM5
+
+
+     $40014C00 constant TIM9
        TIM9 $0 + constant TIM9_CR1
        TIM9 $4 + constant TIM9_CR2
        TIM9 $8 + constant TIM9_SMCR
@@ -300,12 +300,12 @@ $A0000000 constant FSMC
        TIM9 $2C + constant TIM9_ARR
        TIM9 $34 + constant TIM9_CCR1
        TIM9 $38 + constant TIM9_CCR2
-        
-	
-     $40001800 constant TIM12  
-        
-	
-     $40015000 constant TIM10  
+
+
+     $40001800 constant TIM12
+
+
+     $40015000 constant TIM10
        TIM10 $0 + constant TIM10_CR1
        TIM10 $4 + constant TIM10_CR2
        TIM10 $C + constant TIM10_DIER
@@ -318,18 +318,18 @@ $A0000000 constant FSMC
        TIM10 $28 + constant TIM10_PSC
        TIM10 $2C + constant TIM10_ARR
        TIM10 $34 + constant TIM10_CCR1
-        
-	
-     $40015400 constant TIM11  
-        
-	
-     $40001C00 constant TIM13  
-        
-	
-     $40002000 constant TIM14  
-        
-	
-     $40001000 constant TIM6  
+
+
+     $40015400 constant TIM11
+
+
+     $40001C00 constant TIM13
+
+
+     $40002000 constant TIM14
+
+
+     $40001000 constant TIM6
        TIM6 $0 + constant TIM6_CR1
        TIM6 $4 + constant TIM6_CR2
        TIM6 $C + constant TIM6_DIER
@@ -338,12 +338,12 @@ $A0000000 constant FSMC
        TIM6 $24 + constant TIM6_CNT
        TIM6 $28 + constant TIM6_PSC
        TIM6 $2C + constant TIM6_ARR
-        
-	
-     $40001400 constant TIM7  
-        
-	
-     $40005400 constant I2C1  
+
+
+     $40001400 constant TIM7
+
+
+     $40005400 constant I2C1
        I2C1 $0 + constant I2C1_CR1
        I2C1 $4 + constant I2C1_CR2
        I2C1 $8 + constant I2C1_OAR1
@@ -353,12 +353,12 @@ $A0000000 constant FSMC
        I2C1 $18 + constant I2C1_SR2
        I2C1 $1C + constant I2C1_CCR
        I2C1 $20 + constant I2C1_TRISE
-        
-	
-     $40005800 constant I2C2  
-        
-	
-     $40013000 constant SPI1  
+
+
+     $40005800 constant I2C2
+
+
+     $40013000 constant SPI1
        SPI1 $0 + constant SPI1_CR1
        SPI1 $4 + constant SPI1_CR2
        SPI1 $8 + constant SPI1_SR
@@ -368,15 +368,15 @@ $A0000000 constant FSMC
        SPI1 $18 + constant SPI1_TXCRCR
        SPI1 $1C + constant SPI1_I2SCFGR
        SPI1 $20 + constant SPI1_I2SPR
-        
-	
-     $40003800 constant SPI2  
-        
-	
-     $40003C00 constant SPI3  
-        
-	
-     $40013800 constant USART1  
+
+
+     $40003800 constant SPI2
+
+
+     $40003C00 constant SPI3
+
+
+     $40013800 constant USART1
        USART1 $0 + constant USART1_SR
        USART1 $4 + constant USART1_DR
        USART1 $8 + constant USART1_BRR
@@ -384,15 +384,15 @@ $A0000000 constant FSMC
        USART1 $10 + constant USART1_CR2
        USART1 $14 + constant USART1_CR3
        USART1 $18 + constant USART1_GTPR
-        
-	
-     $40004400 constant USART2  
-        
-	
-     $40004800 constant USART3  
-        
-	
-     $40012400 constant ADC1  
+
+
+     $40004400 constant USART2
+
+
+     $40004800 constant USART3
+
+
+     $40012400 constant ADC1
        ADC1 $0 + constant ADC1_SR
        ADC1 $4 + constant ADC1_CR1
        ADC1 $8 + constant ADC1_CR2
@@ -413,9 +413,9 @@ $A0000000 constant FSMC
        ADC1 $44 + constant ADC1_JDR3
        ADC1 $48 + constant ADC1_JDR4
        ADC1 $4C + constant ADC1_DR
-        
-	
-     $40012800 constant ADC2  
+
+
+     $40012800 constant ADC2
        ADC2 $0 + constant ADC2_SR
        ADC2 $4 + constant ADC2_CR1
        ADC2 $8 + constant ADC2_CR2
@@ -436,12 +436,12 @@ $A0000000 constant FSMC
        ADC2 $44 + constant ADC2_JDR3
        ADC2 $48 + constant ADC2_JDR4
        ADC2 $4C + constant ADC2_DR
-        
-	
-     $40013C00 constant ADC3  
-        
-	
-     $40006400 constant CAN  
+
+
+     $40013C00 constant ADC3
+
+
+     $40006400 constant CAN
        CAN $0 + constant CAN_CAN_MCR
        CAN $4 + constant CAN_CAN_MSR
        CAN $8 + constant CAN_CAN_TSR
@@ -503,9 +503,9 @@ $A0000000 constant FSMC
        CAN $2A4 + constant CAN_F12R2
        CAN $2A8 + constant CAN_F13R1
        CAN $2AC + constant CAN_F13R2
-        
-	
-     $40007400 constant DAC  
+
+
+     $40007400 constant DAC
        DAC $0 + constant DAC_CR
        DAC $4 + constant DAC_SWTRIGR
        DAC $8 + constant DAC_DHR12R1
@@ -519,38 +519,38 @@ $A0000000 constant FSMC
        DAC $28 + constant DAC_DHR8RD
        DAC $2C + constant DAC_DOR1
        DAC $30 + constant DAC_DOR2
-        
-	
-     $E0042000 constant DBG  
+
+
+     $E0042000 constant DBG
        DBG $0 + constant DBG_IDCODE
        DBG $4 + constant DBG_CR
-        
-	
-     $40004C00 constant UART4  
+
+
+     $40004C00 constant UART4
        UART4 $0 + constant UART4_SR
        UART4 $4 + constant UART4_DR
        UART4 $8 + constant UART4_BRR
        UART4 $C + constant UART4_CR1
        UART4 $10 + constant UART4_CR2
        UART4 $14 + constant UART4_CR3
-        
-	
-     $40005000 constant UART5  
+
+
+     $40005000 constant UART5
        UART5 $0 + constant UART5_SR
        UART5 $4 + constant UART5_DR
        UART5 $8 + constant UART5_BRR
        UART5 $C + constant UART5_CR1
        UART5 $10 + constant UART5_CR2
        UART5 $14 + constant UART5_CR3
-        
-	
-     $40023000 constant CRC  
+
+
+     $40023000 constant CRC
        CRC $0 + constant CRC_DR
        CRC $4 + constant CRC_IDR
        CRC $8 + constant CRC_CR
-        
-	
-     $40022000 constant FLASH  
+
+
+     $40022000 constant FLASH
        FLASH $0 + constant FLASH_ACR
        FLASH $4 + constant FLASH_KEYR
        FLASH $8 + constant FLASH_OPTKEYR
@@ -559,9 +559,9 @@ $A0000000 constant FSMC
        FLASH $14 + constant FLASH_AR
        FLASH $1C + constant FLASH_OBR
        FLASH $20 + constant FLASH_WRPR
-        
-	
-     $E000E000 constant NVIC  
+
+
+     $E000E000 constant NVIC
        NVIC $4 + constant NVIC_ICTR
        NVIC $F00 + constant NVIC_STIR
        NVIC $100 + constant NVIC_ISER0
@@ -589,9 +589,9 @@ $A0000000 constant FSMC
        NVIC $430 + constant NVIC_IPR12
        NVIC $434 + constant NVIC_IPR13
        NVIC $438 + constant NVIC_IPR14
-        
-	
-     $40005C00 constant USB  
+
+
+     $40005C00 constant USB
        USB $0 + constant USB_EP0R
        USB $4 + constant USB_EP1R
        USB $8 + constant USB_EP2R
@@ -605,5 +605,5 @@ $A0000000 constant FSMC
        USB $48 + constant USB_FNR
        USB $4C + constant USB_DADDR
        USB $50 + constant USB_BTABLE
-        
+
 compiletoram
