@@ -1,12 +1,92 @@
 
 reset
 
+$40010000 constant AFIO
+AFIO $0 + constant AFIO_EVCR
+AFIO $4 + constant AFIO_MAPR
+AFIO $8 + constant AFIO_EXTICR1
+AFIO $C + constant AFIO_EXTICR2
+AFIO $10 + constant AFIO_EXTICR3
+AFIO $14 + constant AFIO_EXTICR4
+AFIO $1C + constant AFIO_MAPR2
+
+$40010400 constant EXTI
+EXTI $0 + constant EXTI_IMR \ Interrupt mask register
+EXTI $4 + constant EXTI_EMR \ Event mask register
+EXTI $8 + constant EXTI_RTSR \ Rising trigger selection register
+EXTI $C + constant EXTI_FTSR \ Falling trigger selection register
+EXTI $10 + constant EXTI_SWIER \ Software interrupt event register
+EXTI $14 + constant EXTI_PR \ Pending register
+
+%0000 constant PA_CR
+%0001 constant PB_CR
+%0010 constant PC_CR
+%0011 constant PD_CR
+%0100 constant PE_CR
+%0101 constant PF_CR
+%0110 constant PG_CR
+
+
+: exti.reg.conf ( pin -- lshift AFIO_EXTCRx )
+  dup
+  2 rshift swap \ pin>>2 pin
+  $3 and 2 lshift \ pin>>2 pin*4
+  swap     \ lhift pin>>2
+  dup
+  0=
+  if
+    drop
+    AFIO_EXTICR1
+    exit
+  then
+  dup
+  1 =
+  if
+    drop
+    AFIO_EXTICR2
+    exit
+  then
+  dup
+  2 =
+  if
+    drop
+    AFIO_EXTICR3
+    exit
+  then
+  drop
+  AFIO_EXTICR4
+;
+
+: exti.set ( t/f pin Px_CR -- )
+  swap \ t/f Px p
+  exti.reg.conf \ t/f Px lshift AFIO_EXTICRx
+  >r
+  dup $F swap lshift
+  r@ bic!
+  rot \ Px lshift t/f
+  if
+    lshift
+    r> bis!
+  else
+    2drop
+    rdrop
+  then
+;
+
+
+
+
+: irq.exti.4.handler
+  ." ."
+  \ Clear Bit pending
+;
 
 : init.gpios
   LED.RED 1 gpio.set
   LED.GREEN 1 gpio.set
   LED.BLUE 1 gpio.set
   IR.IC 0 gpio.set
+  ' irq.exti.4.handler irq-exti4 @ \ Set IR interrupt handler.
 ;
 
 
