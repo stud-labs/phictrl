@@ -1,5 +1,7 @@
 #!/bin/bash
 
-DELAY=100
+DELAY=75
+DEV=/dev/ttyUSB0
 
-picocom --imap lfcrlf -b 113200 -s "ascii-xfr -s -l $DELAY -n" /dev/rfcomm0 $*
+picocom --imap lfcrlf -b 115200 -s "ascii-xfr -s -l $DELAY -n" $DEV $*
+# picocom --imap lfcrlf -b 9600 -s "ascii-xfr -s -l $DELAY -n" $DEV $*

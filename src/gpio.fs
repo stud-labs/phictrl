@@ -1,97 +1,109 @@
-\ Program Name: 1b.fs  for Mecrisp-Stellaris by Matthias Koch and licensed under the GPL
-\ Copyright 2019 t.porter <terry@tjporter.com.au> and licensed under the BSD license.
-\ This program must be loaded before memmap.fs as it provided the pretty printing legend for generic 32 bit prints
-\ Also included is "bin." which prints the binary form of a number with no spaces between numbers for easy copy and pasting purposes
 
 reset
-compiletoram
 
-\ compiletoflash
-
-: b32loop. ( u -- ) \ print 32 bits in 1 bit groups
-0  <#
-31 0 DO
-# 32 HOLD LOOP
-# #>
-TYPE ;
-
-: b32sloop. ( u -- ) \ print 32 bits in 1 bit groups
- 0  <#
- 31 0 DO
- # LOOP
- # #>
- TYPE ;
-
-
-: 1b. ( u -- ) cr \ Label 1 bit generic groups
-      @ dup hex. cr
-      ." 3|3|2|2|2|2|2|2|2|2|2|2|1|1|1|1|1|1|1|1|1|1|" cr
-      ." 1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0 " cr
-      binary b32loop. decimal cr
-;
-
-: CRb. ( u -- ) cr \ Label 1 bit generic groups
-      @ dup hex. cr
-      ." 3|3|2|2|2|2|2|2|2|2|2|2|1|1|1|1|1|1|1|1|1|1|0|0|0|0|0|0|0|0|0|0|" cr
-      ." 1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0|" cr
-      ." ---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+" cr
-      ." c 7|m 7|c 6|m 6|c 5|m 5|c 4|m 4|c 3|m 3|c 2|m 2|c 1|m 1|c 0|m 0|" cr
-      ." ---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+" cr
-      binary b32loop. decimal cr
-;
-
-: bin. cr	  \ for manual operations producing easy to paste binary numbers i.e. " 10 bin. "
-       dup hex. cr
-       ." 3322222222221111111111" cr
-       ." 10987654321098765432109876543210 " cr
-       binary b32sloop. decimal cr
-;
-
-\ compiletoram
-
-
-
-$40010800 constant GPIOA
-$40010C00 constant GPIOB
-
-: GPIO.CRL ( addr -- addr ) ;
-: GPIO.CRH ( n -- n ) $04 + ;
-: GPIO.IDR ( n -- n ) $08 + ;
-: GPIO.ODR ( n -- n ) $0C + ;
-: GPIO.BSRR ( n -- n ) $10 + ;
-: GPIO.BRR ( n -- n ) $14 + ;
-
-: gpio.set ( addr out npin -- )
-  rot GPIO.CRL >r
-
-  2 lshift \ o np*4
-  dup      \ o np4 np4
-  $f swap  \ o np4 $F np4
-  lshift not  \ o np4 F0FFF
-  r@ @ and \ o np4 F0F&av
-  r@ !     \ o np4
-  lshift   \ 0o0
-  r@ @ or  \ xox
-  r> !
-;
-
-: gpio.out ( GPIO-addr out pin -- )
-  rot GPIO.ODR >r \ out pin
-  dup 1           \ o p p 1
-  swap lshift not \ o p 1110111
-  r@ @      \ o p 11110111 xxxxx
-  and       \ o p xxxx0xxx
-  -rot      \ xxxx0xxx o p
-  lshift or \ xxxxoxxxx
-  r> !
-;
-
-: reg. ( word -- ) bin. ;
 
 : init.gpios
-  GPIOA 1 6 gpio.set
-  GPIOA 1 7 gpio.set
-  GPIOB 1 0 gpio.set
+  LED.RED 1 gpio.set
+  LED.GREEN 1 gpio.set
+  LED.BLUE 1 gpio.set
+  IR.IC 0 gpio.set
 ;
 
-: t init.gpios ;
+
+0 variable test-v
+
+: test test-v ! ;
+
+' test USER-WORD !
+
+: stk.current ( -- 24bit-systick-value ) \ The current systick value
+  STK_CVR @
+;
+
+: stk.reload.set ( 24bit-val -- ) \ Set systick reload value
+  STK_RVR !
+;
+
+
+\ ------------- testing code ----------
+
+0 variable frame.current
+: timer.current@ ms_counter @ ;
+0 variable stk.prev
+false variable irframe
+
+: ir.endframe
+    timer.current@
+    frame.current @
+    - 2 >
+    if
+      irframe @
+      if
+        ." --->" cr
+        false irframe !
+      then
+    then
+;
+
+: prc ( ms_counter -- )
+  dup
+  dup 1000 mod 0= if led.blue.on drop else drop then
+  dup 1000 mod 250 = if led.blue.off drop else drop then
+;
+
+' systick-handler irq-systick !    \ This 'hooks' the systick-handler word (above) to the systick irq
+
+' prc USER-WORD !
+
+: timing
+  timer.current@
+  frame.current @
+  - .
+  stk.current stk.prev @ -
+  dup 0< if 8080 + then
+  .
+
+  stk.current stk.prev !
+
+  timer.current@
+  frame.current !
+;
+
+: t.ir
+  init.gpios
+  INIT-SYSTICK \ Initialize timer and enable its interrupt
+
+
+  \ GPIOA GPIO.CRL CRb.
+  ." Shiffing till a key pressed." cr
+  timer.current@ frame.current !
+  -1 >r \ Previous value of ir
+  begin
+    IR.IC gpio.in
+    not
+    dup LED.GREEN gpio.out
+    dup LED.RED gpio.out
+    \ dup LED.BLUE gpio.out
+    not
+
+    dup r@ <>
+    if
+      rdrop dup >r
+      true irframe ! \ Something changed -> ir frame
+      timing
+
+
+      if 43 else 45 then emit \ + -
+
+    else
+      drop
+    then
+
+    ir.endframe
+
+    key? until
+  rdrop
+  \ led.green.off
+  timer.current@ . cr
+  \ DISABLE-SYSTICK
+;
