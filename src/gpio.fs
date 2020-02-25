@@ -173,9 +173,20 @@ NVIC $438 + constant NVIC_IPR14
   exti.set
 ;
 
-
-
 : IR.IC.PIN 4 ; \ TODO: Remove after full debug
+
+\ --- timer ----
+
+: stk.current ( -- 24bit-systick-value ) \ The current systick value
+  STK_CVR @
+;
+
+: stk.reload.set ( 24bit-val -- ) \ Set systick reload value
+  STK_RVR !
+;
+
+
+\ ----------------------------- LOCAL PART ----------------------------
 
 0 variable frame.current
 : timer.current@ ms_counter @ ;
@@ -195,16 +206,6 @@ false variable irframe
     then
 ;
 
-: stk.current ( -- 24bit-systick-value ) \ The current systick value
-  STK_CVR @
-;
-
-: stk.reload.set ( 24bit-val -- ) \ Set systick reload value
-  STK_RVR !
-;
-
-
-
 : timing
   timer.current@
   frame.current @
@@ -219,34 +220,31 @@ false variable irframe
   frame.current !
 ;
 
+true variable IR.IC.PREV
 
 : irq.exti.4.handler
-  \ ." ."
   \ Clear Bit pending
   IR.IC.PIN exti.pr.clear
   \ IR.IC gpio.in
   \ not LED.GREEN gpio.out
-    IR.IC gpio.in
-    not
-    dup LED.GREEN gpio.out
-    \ dup LED.BLUE gpio.out
-    not
+  IR.IC gpio.in
+  dup not LED.GREEN gpio.out
+  \ dup LED.BLUE gpio.out
 
-    if
-      true irframe ! \ Something changed -> ir frame
-      \ timing
+  dup if
+    true irframe ! \ Something changed -> ir frame
+    \ timing
 
-      if 43 else 45 then emit \ + -
+    \ if 43 else 45 then emit \ + -
 
-    else
-      drop
-    then
+  then
 
-    ir.endframe
+  ir.endframe
 
+  IR.IC.PREV !
 ;
 
-: init.isr
+: init.PB4.isr \ Init interrupt processing for \ / PB4.
   ['] irq.exti.4.handler irq-exti4 ! \ Set IR interrupt handler.
   true IR.IC.PIN PB_CR exti.conf     \ Configure EXTI line
   false IR.IC.PIN exti.imr.mask      \ Unmask the interrupt
@@ -257,13 +255,13 @@ false variable irframe
   1 10 lshift NVIC_ISER0 bis!
 ;
 
-: init.gpios ( int-on-off -- ) \ Enable interrupt-driven ?
+: init.gpios ( int-on-off -- ) \ Enable interrupt-driven procs ?
   LED.RED 1 gpio.set
   LED.GREEN 1 gpio.set
   LED.BLUE 1 gpio.set
   IR.IC 0 gpio.set
   if
-    init.isr
+    init.PB4.isr
   then
 ;
 
@@ -289,7 +287,7 @@ false variable irframe
 
 ' prc USER-WORD !
 
-: init ( enable-int -- )
+: init ( enable-int -- ) \ Initialize IR processing
   init.gpios
   INIT-SYSTICK \ Initialize timer and enable its interrupt
   timer.current@ frame.current !
