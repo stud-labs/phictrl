@@ -61,7 +61,8 @@ $40010C00 constant GPIOB
 : LED.RED ( -- pin GPIOx ) 6 GPIOA ;
 : LED.GREEN ( -- pin GPIOx ) 7 GPIOA ;
 : LED.BLUE ( -- pin GPIOx ) 0 GPIOB ;
-: IR.IC ( -- pin GPIOx ) 4 GPIOB ;
+: IR.IC.PIN 4 ;
+: IR.IC ( -- pin GPIOx ) IR.IC.PIN GPIOB ;
 
 : led.on ( pin GPIOX -- ) 1 -rot gpio.out ;
 : led.off ( pin GPIOX -- ) 0 -rot gpio.out ;
