@@ -16,8 +16,8 @@ def conn():
 
 def main():
     sock = conn()
-    sock.send(b'hello\n')
-    print("Received: ", sock.recv(100))
+    sock.send(b'+')
+    print("Received: ", sock.recv(1))
     sock.close()
 
 
