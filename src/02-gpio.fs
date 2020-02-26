@@ -2,6 +2,11 @@ compiletoflash
 
 $40010800 constant GPIOA
 $40010C00 constant GPIOB
+$40011000 constant GPIOC
+\ $40011400 constant GPIOD
+\ $40011800 constant GPIOE
+\ $40011C00 constant GPIOF
+\ $40012000 constant GPIOG
 
 : GPIO.CRL ( addr -- addr ) ;
 : GPIO.CRH ( n -- n ) $04 + ;
@@ -10,7 +15,7 @@ $40010C00 constant GPIOB
 : GPIO.BSRR ( n -- n ) $10 + ;
 : GPIO.BRR ( n -- n ) $14 + ;
 
-: prep.cnf
+: prep.cnf$ ( o -- config-code )
   dup 0= if
     %0100 or
   then
@@ -25,7 +30,7 @@ $40010C00 constant GPIOB
   r@ @ and \ o np4 F0F&av
   r@ !     \ o np4
   swap
-  prep.cnf \ add cnf configuration depending out 0|1
+  prep.cnf$ \ add cnf configuration depending out 0|1
   swap
   lshift   \ 0co0
   r@ @ or  \ xcox
@@ -55,8 +60,6 @@ $40010C00 constant GPIOB
   swap rshift \ 00000v
   0<>
 ;
-
-: reg. ( word -- ) bin. ;
 
 : LED.RED ( -- pin GPIOx ) 6 GPIOA ;
 : LED.GREEN ( -- pin GPIOx ) 7 GPIOA ;
@@ -257,6 +260,5 @@ NVIC $438 + constant NVIC_IPR14
   EXTI_SWIER
   exti.set
 ;
-
 
 compiletoram

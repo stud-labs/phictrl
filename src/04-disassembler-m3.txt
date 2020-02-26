@@ -474,4 +474,9 @@ drop \ Forget opcode
   seec
 ;
 
+: seea ( addr -- ) \ Takes addr of a word
+  disasm-$ !
+  seec
+;
+
 compiletoram
