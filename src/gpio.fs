@@ -1,220 +1,142 @@
 
 reset
 
-$40010000 constant AFIO
-AFIO $0 + constant AFIO_EVCR
-AFIO $4 + constant AFIO_MAPR
-AFIO $8 + constant AFIO_EXTICR1
-AFIO $C + constant AFIO_EXTICR2
-AFIO $10 + constant AFIO_EXTICR3
-AFIO $14 + constant AFIO_EXTICR4
-AFIO $1C + constant AFIO_MAPR2
-
-$40021000 constant RCC
-RCC $0 + constant RCC_CR
-RCC $4 + constant RCC_CFGR
-RCC $8 + constant RCC_CIR
-RCC $C + constant RCC_APB2RSTR
-RCC $10 + constant RCC_APB1RSTR
-RCC $14 + constant RCC_AHBENR
-RCC $18 + constant RCC_APB2ENR \ Peripheral clock enabler for GPIOx.
-RCC $1C + constant RCC_APB1ENR
-RCC $20 + constant RCC_BDCR
-RCC $24 + constant RCC_CSR
-
-
-$40010400 constant EXTI
-EXTI $0 + constant EXTI_IMR \ Interrupt mask register
-EXTI $4 + constant EXTI_EMR \ Event mask register
-EXTI $8 + constant EXTI_RTSR \ Rising trigger selection register
-EXTI $C + constant EXTI_FTSR \ Falling trigger selection register
-EXTI $10 + constant EXTI_SWIER \ Software interrupt event register
-EXTI $14 + constant EXTI_PR \ Pending register
-
-$E000E000 constant NVIC
-NVIC $4 + constant NVIC_ICTR
-NVIC $F00 + constant NVIC_STIR
-NVIC $100 + constant NVIC_ISER0
-NVIC $104 + constant NVIC_ISER1
-NVIC $180 + constant NVIC_ICER0
-NVIC $184 + constant NVIC_ICER1
-NVIC $200 + constant NVIC_ISPR0
-NVIC $204 + constant NVIC_ISPR1
-NVIC $280 + constant NVIC_ICPR0
-NVIC $284 + constant NVIC_ICPR1
-NVIC $300 + constant NVIC_IABR0
-NVIC $304 + constant NVIC_IABR1
-NVIC $400 + constant NVIC_IPR0
-NVIC $404 + constant NVIC_IPR1
-NVIC $408 + constant NVIC_IPR2
-NVIC $40C + constant NVIC_IPR3
-NVIC $410 + constant NVIC_IPR4
-NVIC $414 + constant NVIC_IPR5
-NVIC $418 + constant NVIC_IPR6
-NVIC $41C + constant NVIC_IPR7
-NVIC $420 + constant NVIC_IPR8
-NVIC $424 + constant NVIC_IPR9
-NVIC $428 + constant NVIC_IPR10
-NVIC $42C + constant NVIC_IPR11
-NVIC $430 + constant NVIC_IPR12
-NVIC $434 + constant NVIC_IPR13
-NVIC $438 + constant NVIC_IPR14
-
-
-%0000 constant PA_CR
-%0001 constant PB_CR
-%0010 constant PC_CR
-%0011 constant PD_CR
-%0100 constant PE_CR
-%0101 constant PF_CR
-%0110 constant PG_CR
-
-: exti.enable ( Px_CR -- )
-  1 swap 2 + lshift
-  RCC_APB2ENR bis!
-;
-
-: exti.reg.conf ( pin -- lshift AFIO_EXTCRx )
-  dup
-  2 rshift swap \ pin>>2 pin
-  $3 and 2 lshift \ pin>>2 pin*4
-  swap     \ lhift pin>>2
-  dup
-  0=
-  if
-    drop
-    AFIO_EXTICR1
-    exit
-  then
-  dup
-  1 =
-  if
-    drop
-    AFIO_EXTICR2
-    exit
-  then
-  dup
-  2 =
-  if
-    drop
-    AFIO_EXTICR3
-    exit
-  then
-  drop
-  AFIO_EXTICR4
-;
-
-: exti.conf ( t/f pin Px_CR -- )
-  swap \ t/f Px p
-  exti.reg.conf \ t/f Px lshift AFIO_EXTICRx
-  >r
-  dup $F swap lshift
-  r@ bic!
-  rot \ Px lshift t/f
-  if
-    lshift
-    r> bis!
-  else
-    2drop
-    rdrop
-  then
-;
-
-: exti.pr.pending? ( no -- t/f ) \ whether the interrupt is pending for INT no
-  EXTI_PR @ swap rshift 1 and
-  0<>
-;
-
-: exti.pr.clear ( no -- ) \ Clears pending bit for INT no
-  1 swap lshift
-  EXTI_PR bis!
-;
-
-: exti.set ( t/f no EXTI_x -- )
-  >r
-  1 swap lshift
-  r>     \ t/f 1<<no EXTI_x
-  rot
-  if
-    bis! \ Set bit
-  else
-    bic! \ Clear bit
-  then
-;
-
-: exti.mask ( t/f no EXTI_x -- )
-  rot not -rot
-  exti.set
-;
-
-: exti.imr.mask ( t/f no -- )
-  EXTI_IMR
-  exti.mask
-;
-
-: exti.emr.mask ( t/f no -- )
-  EXTI_EMR
-  exti.mask
-;
-
-: exti.rtsr.trigger ( t/f no -- )
-  EXTI_RTSR
-  exti.set
-;
-
-: exti.ftsr.trigger ( t/f no -- )
-  EXTI_FTSR
-  exti.set
-;
-
-: exti.event.trigger ( no -- )
-  true swap
-  EXTI_SWIER
-  exti.set
-;
-
-: IR.IC.PIN 4 ; \ TODO: Remove after full debug
-
-\ --- timer ----
-
-: stk.current ( -- 24bit-systick-value ) \ The current systick value
-  STK_CVR @
-;
-
-: stk.reload.set ( 24bit-val -- ) \ Set systick reload value
-  STK_RVR !
-;
-
-
 \ ----------------------------- LOCAL PART ----------------------------
+
+0 variable NEC.DECODE
+true variable NEC.CODE
+true variable NEC.STATE
+48 constant NEC.LAST.STATE
+
+: nec.state- ( -- NEC.STATE )
+  NEC.STATE @ 1- NEC.STATE !
+;
+
+: nec.code.add ( n -- )
+  NEC.DECODE @ 1 lshift or
+  NEC.DECODE !
+;
+
+: nec.code.1
+  1 nec.code.add
+;
+
+: nec.code.0
+  0 nec.code.add
+;
+
+: nec.dec.down ( 10ms -- )
+  NEC.STATE @ true =
+  if
+    \ ." 48"
+    NEC.LAST.STATE NEC.STATE ! \ Start decoding
+    0 NEC.DECODE ! \ Initial value
+    exit
+  then
+  nec.state-
+  10 >=
+  if
+    \ ." 1"
+    nec.code.1
+  else
+    \ ." 0"
+    nec.code.0
+  then
+;
+
+: nec.dec.up ( 10ms -- )
+  nec.state-
+  drop
+;
+
+: nec.dec ( 10ms up|down -- )
+  \ up = true, down = false
+  if \ up
+    nec.dec.up
+  else
+    nec.dec.down
+  then
+;
+
+: nec.accept
+  NEC.DECODE @ NEC.CODE !
+;
+
+: nec.reset
+  true NEC.STATE !
+  0 NEC.DECODE !
+  \ true NEC.CODE !
+;
+
+\ : nec.code
+\   \ depth 3 / 0 do . . . ." |" loop cr
+\   ." CODE:"
+\   NEC.DECODE @
+\   dup NEC.CODE !
+\   dup hex.
+\   binary . decimal cr
+\   ." STATE:"
+\   NEC.STATE @ . cr
+\   ." STACK:" .s cr
+\   nec.reset
+\ ;
+
+: nec.key
+  NEC.CODE @ $FF and
+  case
+    $9d of $5e endof \ "^" Up
+    $57 of $76 endof \ "v" Down
+    $DD of $3c endof \ "<" Left
+    $3d of $3e endof \ ">" Right
+    $fd of $6b endof \ "k" Ok
+    $97 of $31 endof \ "1"
+    $67 of $32 endof \ "2"
+    $4f of $33 endof \ "3"
+    $cf of $34 endof \ "4"
+    $e7 of $35 endof \ "5"
+    $85 of $36 endof \ "6"
+    $ef of $37 endof \ "7"
+    $c7 of $38 endof \ "8"
+    $a5 of $39 endof \ "9"
+    $b5 of $30 endof \ "0"
+    $bd of $2a endof \ ""
+    $ad of $23 endof \ ""
+  endcase
+;
+
 
 0 variable frame.current
 : timer.current@ ms_counter @ ;
 0 variable stk.prev
 false variable irframe
+0 variable USER-ACCEPT
 
-: ir.endframe
-    timer.current@
-    frame.current @
-    - 2 >
-    if
-      irframe @
-      if
-        ." --->" cr
-        false irframe !
-      then
-    then
-;
-
-: timing
+: ir.endframe ( -- )
   timer.current@
   frame.current @
-  - .
-  stk.current stk.prev @ -
-  dup 0< if 8080 + then
-  .
+  - 100 >
+  if
+    irframe @
+    if
+      \ ." --->" cr
+      false irframe !
+      nec.accept
+      nec.reset
+      USER-ACCEPT @
+      dup 0<> if execute else drop then
+    then
+  then
+;
 
-  stk.current stk.prev !
+: timing ( -- dmS )
+  timer.current@
+  frame.current @
+  -  \ .
+  \ stk.current stk.prev @ -
+  \ dup 0< if 808 + then
+   \ .
+
+  \ stk.current stk.prev !
 
   timer.current@
   frame.current !
@@ -222,26 +144,67 @@ false variable irframe
 
 true variable IR.IC.PREV
 
+: ir.irq.disable
+  true IR.IC.PIN exti.imr.mask      \ Mask the interrupt
+;
+
+: ir.irq.enable
+  false IR.IC.PIN exti.imr.mask      \ Mask the interrupt
+;
+
 : irq.exti.4.handler
   \ Clear Bit pending
+  \ ." +-" depth . cr
+  ir.irq.disable
+
   IR.IC.PIN exti.pr.clear
   \ IR.IC gpio.in
   \ not LED.GREEN gpio.out
   IR.IC gpio.in
+  \ dup .
   dup not LED.GREEN gpio.out
   \ dup LED.BLUE gpio.out
 
-  dup if
+  dup if \ "/"
+    \ ir.endframe \ Is end frame
+  else
     true irframe ! \ Something changed -> ir frame
-    \ timing
-
-    \ if 43 else 45 then emit \ + -
-
   then
+  dup
+  timing \ i i dmS
+  swap
+  nec.dec
 
-  ir.endframe
+  \ dup if
+  \   $2f \ "/"
+  \ else
+  \   $5c \ "\"
+  \ then
+  \ emit
 
   IR.IC.PREV !
+  \ ." --" depth . cr
+  ir.irq.enable
+;
+
+false variable LED.ON.ON
+
+: user-accept-prc
+  \ NEC.CODE crb.
+  nec.key
+  dup .
+  case
+    $6b of \ "Ok" aka "k"
+      LED.ON.ON @
+      if
+        led.red.off
+        false LED.ON.ON !
+      else
+        led.red.on
+        true LED.ON.ON !
+      then
+    endof
+  endcase
 ;
 
 : init.PB4.isr \ Init interrupt processing for \ / PB4.
@@ -253,6 +216,8 @@ true variable IR.IC.PREV
   true IR.IC.PIN exti.ftsr.trigger   \ Set the falling edge trigger
   PB_CR exti.enable                  \ Enable peripheral clock
   1 10 lshift NVIC_ISER0 bis!
+  nec.reset \ reset NEC data
+  ['] user-accept-prc USER-ACCEPT !
 ;
 
 : init.gpios ( int-on-off -- ) \ Enable interrupt-driven procs ?
@@ -275,21 +240,26 @@ true variable IR.IC.PREV
 
 \ ------------- testing code ----------
 
-
-
 : prc ( ms_counter -- )
   dup
-  dup 1000 mod 0= if led.blue.on drop else drop then
-  dup 1000 mod 250 = if led.blue.off drop else drop then
+  dup 10000 mod 0= if led.blue.on drop else drop then
+  dup 10000 mod 2500 = if led.blue.off drop else drop then
+  ir.endframe
 ;
 
 ' systick-handler irq-systick !    \ This 'hooks' the systick-handler word (above) to the systick irq
 
 ' prc USER-WORD !
 
+: INIT-SYSTICK-1
+  INIT-SYSTICK
+  808 STK_RVR !			\ systick calib for 1ms using internal 8mhz osc
+;
+
+
 : init ( enable-int -- ) \ Initialize IR processing
   init.gpios
-  INIT-SYSTICK \ Initialize timer and enable its interrupt
+  INIT-SYSTICK-1 \ Initialize timer and enable its interrupt
   timer.current@ frame.current !
 ;
 
