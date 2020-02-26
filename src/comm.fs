@@ -16,11 +16,11 @@ $40004800 constant USART3 \ FIXME: Check DOC
 : USART.CR3 ( USARTx -- USARTx_CR3 ) $14 + ; \ Control Register 3
 : USART.GTPR ( USARTx -- USARTx_GTPR ) $18 + ; \ Guard Time and Prescaler Register
 
-: bset! ( addr set|reset bitno)
+: bset! ( addr set|reset bitno -- )
   swap
   0<> swap      \ a -1|0 bitno
   1 swap lshift \ a -1|0 1<<bitno
-  -rot          \ 1<<bn a TF
+  -rot          \ 1<<bn a 0|-1
   if
     bis!
   else
@@ -103,20 +103,25 @@ $40004800 constant USART3 \ FIXME: Check DOC
   0 swap usart.sr.get
 ;
 
-: usart.dr.send ( char USARTx -- )
-  swap dup swap \ USARTx char USARTx
-  USART.DR !
-  USART.SR
+: ct \ COMM test
+  USART2
+  dup true swap usart.ue.set \ Switch on the USART2
+  dup USART.BRR $45 swap ! \ Set 115207 Bit rate
   drop
 ;
 
 
-\ TESTING Stuff
-
-$44444444 variable test
-
-: ct \ COMM test
-  USART2
-  dup usart.ue.set \ Switch on the USART2
-  dup USART.BRR $45 swap ! \ Set 115207 Bit rate
+: usart.send ( char USARTx -- )
+  dup   >r    \ char USARTx  \ R USARTx
+  USART.DR !
+  \ begin
+    \ key? if leave then
+  R@ usart.sr.tc
+  \ until
+  rdrop
 ;
+
+
+\ \ TESTING Stuff
+
+\ $44444444 variable test
