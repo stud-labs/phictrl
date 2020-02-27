@@ -99,8 +99,8 @@ true variable NEC.STATE
     $c7 of $38 endof \ "8"
     $a5 of $39 endof \ "9"
     $b5 of $30 endof \ "0"
-    $bd of $2a endof \ ""
-    $ad of $23 endof \ ""
+    $bd of $2a endof \ "*"
+    $ad of $23 endof \ "#"
   endcase
 ;
 
@@ -265,40 +265,4 @@ false variable LED.ON.ON
 
 : t.i
   true init
-;
-
-: t.ir
-  false init
-
-  \ GPIOA GPIO.CRL CRb.
-  ." Shiffing till a key pressed." cr
-  -1 >r \ Previous value of ir
-  begin
-    IR.IC gpio.in
-    not
-    dup LED.GREEN gpio.out
-    dup LED.RED gpio.out
-    \ dup LED.BLUE gpio.out
-    not
-
-    dup r@ <>
-    if
-      rdrop dup >r
-      true irframe ! \ Something changed -> ir frame
-      timing
-
-
-      if 43 else 45 then emit \ + -
-
-    else
-      drop
-    then
-
-    ir.endframe
-
-    key? until
-  rdrop
-  \ led.green.off
-  timer.current@ . cr
-  \ DISABLE-SYSTICK
 ;

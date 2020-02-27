@@ -53,8 +53,8 @@ $E000E01C constant STK_CALIB	\ SysTick calibration value register. Read Only, $4
 
 : INIT-SYSTICK
   8080 STK_RVR !			\ systick calib for 1ms using internal 8mhz osc
-  %111 STK_CSR bis!		    \ systick enable with interrupt
   ['] systick-handler irq-systick !    \ This 'hooks' the systick-handler word (above) to the systick irq
+  %111 STK_CSR bis!		    \ systick enable with interrupt
 ;
 
 
