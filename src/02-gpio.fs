@@ -37,6 +37,31 @@ $40011000 constant GPIOC
   r> !
 ;
 
+
+: prep.cnf.af$ ( o -- config-code-alternate-function )
+  dup 0= if
+    %0100 or \ Input mode m=00!
+  else
+    %1000 or \ Output mode c=10 -> AF_PP m=00 out 20Mhz
+  then
+;
+
+: gpio.af.set ( npin addr out? -- )
+  -rot GPIO.CRL >r \ out? npin
+  2 lshift \ o np*4
+  dup      \ o np4 np4
+  $f swap  \ o np4 $F np4
+  lshift not  \ o np4 F0FFF
+  r@ @ and \ o np4 F0F&av
+  r@ !     \ o np4
+  swap
+  prep.cnf.af$ \ add cnf configuration depending out 0|1
+  swap
+  lshift   \ 0co0
+  r@ @ or  \ xcox
+  r> !
+;
+
 : gpio.out ( out? pin GPIOX -- )
   GPIO.ODR >r     \ pin out
   dup 1           \ o p p 1

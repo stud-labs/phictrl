@@ -2,6 +2,30 @@
 
 reset
 
+: prep.cnf.af$ ( o -- config-code-alternate-function )
+  dup 0= if
+    %0100 or \ Input mode m=00!
+  else
+    %1000 or \ Output mode c=10 -> AF_PP m=00 out 20Mhz
+  then
+;
+
+: gpio.af.set ( npin addr out? -- )
+  -rot GPIO.CRL >r \ out? npin
+  2 lshift \ o np*4
+  dup      \ o np4 np4
+  $f swap  \ o np4 $F np4
+  lshift not  \ o np4 F0FFF
+  r@ @ and \ o np4 F0F&av
+  r@ !     \ o np4
+  swap
+  prep.cnf.af$ \ add cnf configuration depending out 0|1
+  swap
+  lshift   \ 0co0
+  r@ @ or  \ xcox
+  r> !
+;
+
 $40013800 constant USART1
 $40004400 constant USART2 \ FIXME: Check DOC
 $40004800 constant USART3 \ FIXME: Check DOC
@@ -40,9 +64,16 @@ RCC $24 + constant RCC_CSR
   then
 ;
 
+
+
 : rcc.en.usart2
   1 2 lshift RCC_APB2ENR bis!  \ Enable PA CLOCK
   1 17 lshift RCC_APB1ENR bis! \ Enable USART2 Clock
+  2 GPIOA 1 gpio.af.set        \ Enable GPIO AF Out function
+;
+
+: usart2.int.enable \ Line 38
+  1 38 32 - lshift NVIC_ISER1 bis! \ Enable 38-th line
 ;
 
 : rcc.en.usart3
@@ -58,6 +89,16 @@ RCC $24 + constant RCC_CSR
 : usart.ue.set ( 0|1 USARTx -- ) \ Set/Reset USART function
   usart.cr1.pr
   13 bset!
+;
+
+: usart.tcie.set ( 0|1 USARTx -- ) \ Set/Reset USART int on TC=1
+  usart.cr1.pr
+  6 bset!
+;
+
+: usart.rxneie.set ( 0|1 USARTx -- ) \ Set/Reset USART int on ORE=1 or RXNE=1
+  usart.cr1.pr
+  5 bset!
 ;
 
 : usart.te.set ( 0|1 USARTx -- ) \ Set/Reset USART Transmit Enable
@@ -125,92 +166,33 @@ RCC $24 + constant RCC_CSR
   0 swap usart.sr.get
 ;
 
-\ // Initialize and configure UART peripheral with specified baudrate
-\ // input:
-\ //   baudrate - UART speed (bits/s)
-\ void UARTx_Init(USART_TypeDef* USARTx, uint32_t baudrate) {
-\ 	GPIO_InitTypeDef PORT;
 
-\ 	PORT.GPIO_Mode  = GPIO_Mode_AF;
-\ 	PORT.GPIO_Speed = GPIO_Speed_40MHz;
-\ 	PORT.GPIO_OType = GPIO_OType_PP;
-\ 	PORT.GPIO_PuPd  = GPIO_PuPd_UP;
-
-\ 	if (USARTx == USART1) {
-\ 		RCC_AHBPeriphClockCmd(USART1_PORT_PERIPH,ENABLE);
-\ 		RCC_APB2PeriphClockCmd(USART1_PORT_APB,ENABLE);
-\ 		PORT.GPIO_Pin = USART1_TX_PIN;
-\ 		GPIO_Init(USART1_GPIO_PORT,&PORT);
-\ 		PORT.GPIO_Pin = USART1_RX_PIN;
-\ 		GPIO_Init(USART1_GPIO_PORT,&PORT);
-\ 		GPIO_PinAFConfig(USART1_GPIO_PORT,USART1_TX_PIN_SRC,USART1_GPIO_AF);
-\ 		GPIO_PinAFConfig(USART1_GPIO_PORT,USART1_RX_PIN_SRC,USART1_GPIO_AF);
-\ 	} else if (USARTx == USART2) {
-\ 		RCC_AHBPeriphClockCmd(USART2_PORT_PERIPH,ENABLE);
-\ 		RCC_APB1PeriphClockCmd(USART2_PORT_APB,ENABLE);
-\ 		PORT.GPIO_Pin = USART2_TX_PIN;
-\ 		GPIO_Init(USART2_GPIO_PORT,&PORT);
-\ 		PORT.GPIO_Pin = USART2_RX_PIN;
-\ 		GPIO_Init(USART2_GPIO_PORT,&PORT);
-\ 		GPIO_PinAFConfig(USART2_GPIO_PORT,USART2_TX_PIN_SRC,USART2_GPIO_AF);
-\ 		GPIO_PinAFConfig(USART2_GPIO_PORT,USART2_RX_PIN_SRC,USART2_GPIO_AF);
-\ 	} else if (USARTx == USART3) {
-\ 		RCC_AHBPeriphClockCmd(USART3_PORT_PERIPH,ENABLE);
-\ 		RCC_APB1PeriphClockCmd(USART3_PORT_APB,ENABLE);
-\ 		PORT.GPIO_Pin = USART3_TX_PIN;
-\ 		GPIO_Init(USART3_GPIO_PORT,&PORT);
-\ 		PORT.GPIO_Pin = USART3_RX_PIN;
-\ 		GPIO_Init(USART3_GPIO_PORT,&PORT);
-\ 		GPIO_PinAFConfig(USART3_GPIO_PORT,USART3_TX_PIN_SRC,USART3_GPIO_AF);
-\ 		GPIO_PinAFConfig(USART3_GPIO_PORT,USART3_RX_PIN_SRC,USART3_GPIO_AF);
-\ 	}
-
-\ 	// Configure the USART: 1 stop bit (STOP[13:12] = 00)
-\ 	USARTx->CR2 &= ~(USART_CR2_STOP);
-
-\ 	// Configure the USART: 8-bit frame, no parity check, TX and RX enabled
-\ 	USARTx->CR1 &= ~(USART_CR1_M | USART_CR1_PCE | USART_CR1_PS | USART_CR1_TE | USART_CR1_RE);
-\ 	USARTx->CR1 |= USART_CR1_TE | USART_CR1_RE; // Transmitter and receiver enabled
-
-\ 	// Configure the USART: CTS and RTS hardware flow control disabled
-\ 	USARTx->CR3 &= ~(USART_CR3_CTSE | USART_CR3_RTSE);
-
-\ 	// Configure USART port at given speed
-\ 	UARTx_SetSpeed(USARTx,baudrate);
-
-\ 	// Enable USART
-\ 	USARTx->CR1 |= USART_CR1_UE;
-\ }
+: usart2.int.handler
+  led.red.on
+;
 
 : ct \ COMM test
   rcc.en.usart2   \ Enable peripheral clock.
   USART2
-  dup true swap usart.ue.set \ Switch on the USART2
   \ GPIO A2 A3 one in one out (alternate function)
   dup true swap usart.te.set \ Switch on the USART2
   dup true swap usart.re.set \ Switch on the USART2
   dup USART.BRR $45 swap ! \ Set 115207 Bit rate
   dup true swap usart.ue.set \ Switch on the USART2
+  dup true swap usart.tcie.set \ Int on TC=1
+  dup true swap usart.rxneie.set \ Int on RXNE=1
   drop
+  ['] usart2.int.handler irq-usart2 ! \ Set interrupt handler
+  \ usart2.int.enable          \ Int line 38
 ;
-
-
-\ // Send single character to UART
-\ // input:
-\ //   USARTx - pointer to the USART port (USART1, USART2, etc.)
-\ //   ch - character to send
-\ void UART_SendChar(USART_TypeDef* USARTx, char ch) {
-\ 	USARTx->DR = ch;
-\ 	while (!(USARTx->SR & USART_SR_TC)); // wait for "Transmission Complete" flag cleared
-\ }
 
 : usart.send ( char USARTx -- )
   dup   >r    \ char USARTx  \ R USARTx
   USART.DR !
-  \ begin
+  begin
     \ key? if leave then
-  R@ usart.sr.tc
-  \ until
+    R@ usart.sr.tc \ tc != 1
+  until
   rdrop
 ;
 
