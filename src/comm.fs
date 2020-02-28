@@ -179,8 +179,8 @@ RCC $24 + constant RCC_CSR
   dup true swap usart.re.set \ Switch on the USART2
   dup USART.BRR $45 swap ! \ Set 115207 Bit rate
   dup true swap usart.ue.set \ Switch on the USART2
-  dup true swap usart.tcie.set \ Int on TC=1
-  dup true swap usart.rxneie.set \ Int on RXNE=1
+  \ dup true swap usart.tcie.set \ Int on TC=1
+  \ dup true swap usart.rxneie.set \ Int on RXNE=1
   drop
   ['] usart2.int.handler irq-usart2 ! \ Set interrupt handler
   \ usart2.int.enable          \ Int line 38
