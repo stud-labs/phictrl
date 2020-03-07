@@ -68,7 +68,8 @@ true variable NEC.STATE
   \ true NEC.CODE !
 ;
 
-: nec.key
+: nec.key ( -- key|false )
+  false
   NEC.CODE @ $FF and
   case
     $9d of $5e endof \ "^" Up
@@ -89,6 +90,9 @@ true variable NEC.STATE
     $bd of $2a endof \ "*"
     $ad of $23 endof \ "#"
   endcase
+  dup false <> if \ f key
+    swap drop \ key
+  then \ f
 ;
 
 
