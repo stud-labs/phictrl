@@ -8,7 +8,7 @@ true variable NEC.CODE
 true variable NEC.STATE
 48 constant NEC.LAST.STATE
 
-: nec.state- ( -- NEC.STATE )
+: nec.state- ( -- )
   NEC.STATE @ 1- NEC.STATE !
 ;
 
@@ -17,20 +17,20 @@ true variable NEC.STATE
   NEC.DECODE !
 ;
 
-: nec.code.1
+: nec.code.1 ( -- )
   1 nec.code.add
 ;
 
-: nec.code.0
+: nec.code.0 ( -- )
   0 nec.code.add
 ;
 
 : nec.dec.down ( 10ms -- )
   NEC.STATE @ true =
   if
-    \ ." 48"
     NEC.LAST.STATE NEC.STATE ! \ Start decoding
     0 NEC.DECODE ! \ Initial value
+    drop   \ Did not use time delta (10ms)
     exit
   then
   nec.state-
@@ -68,19 +68,6 @@ true variable NEC.STATE
   \ true NEC.CODE !
 ;
 
-\ : nec.code
-\   \ depth 3 / 0 do . . . ." |" loop cr
-\   ." CODE:"
-\   NEC.DECODE @
-\   dup NEC.CODE !
-\   dup hex.
-\   binary . decimal cr
-\   ." STATE:"
-\   NEC.STATE @ . cr
-\   ." STACK:" .s cr
-\   nec.reset
-\ ;
-
 : nec.key
   NEC.CODE @ $FF and
   case
@@ -106,43 +93,41 @@ true variable NEC.STATE
 
 
 0 variable frame.current
-: timer.current@ ms_counter @ ;
+: timer.current ms_counter ;
 0 variable stk.prev
 false variable irframe
 0 variable USER-ACCEPT
+true variable last.space
 
 : ir.endframe ( -- )
-  timer.current@
+  timer.current @
   frame.current @
-  - 100 >
+  - dup 100 >
   if
     irframe @
     if
-      \ ." --->" cr
+      last.space !
       false irframe !
       nec.accept
       nec.reset
       USER-ACCEPT @
       dup 0<> if execute else drop then
+    else
+      drop
     then
+  else
+    drop
   then
 ;
 
 : timing ( -- dmS )
-  timer.current@
+  timer.current @
+  dup
   frame.current @
-  -  \ .
-  \ stk.current stk.prev @ -
-  \ dup 0< if 808 + then
-   \ .
-
-  \ stk.current stk.prev !
-
-  timer.current@
+  -
+  swap
   frame.current !
 ;
-
-true variable IR.IC.PREV
 
 : ir.irq.disable
   true IR.IC.PIN exti.imr.mask      \ Mask the interrupt
@@ -154,45 +139,32 @@ true variable IR.IC.PREV
 
 : irq.exti.4.handler
   \ Clear Bit pending
-  \ ." +-" depth . cr
   ir.irq.disable
 
   IR.IC.PIN exti.pr.clear
-  \ IR.IC gpio.in
-  \ not LED.GREEN gpio.out
   IR.IC gpio.in
-  \ dup .
+
   dup not LED.GREEN gpio.out
-  \ dup LED.BLUE gpio.out
 
   dup if \ "/"
-    \ ir.endframe \ Is end frame
   else
     true irframe ! \ Something changed -> ir frame
   then
-  dup
-  timing \ i i dmS
+
+  timing \ \/ dmS
   swap
+
   nec.dec
 
-  \ dup if
-  \   $2f \ "/"
-  \ else
-  \   $5c \ "\"
-  \ then
-  \ emit
-
-  IR.IC.PREV !
-  \ ." --" depth . cr
   ir.irq.enable
 ;
 
 false variable LED.ON.ON
 
-: user-accept-prc
+: user-accept-prc ( -- )
   \ NEC.CODE crb.
   nec.key
-  dup .
+  dup . dup emit
   case
     $6b of \ "Ok" aka "k"
       LED.ON.ON @
@@ -241,9 +213,11 @@ false variable LED.ON.ON
 \ ------------- testing code ----------
 
 : prc ( ms_counter -- )
+  \ drop exit
   dup
   dup 10000 mod 0= if led.blue.on drop else drop then
   dup 10000 mod 2500 = if led.blue.off drop else drop then
+
   ir.endframe
 ;
 
@@ -260,7 +234,7 @@ false variable LED.ON.ON
 : init ( enable-int -- ) \ Initialize IR processing
   init.gpios
   INIT-SYSTICK-1 \ Initialize timer and enable its interrupt
-  timer.current@ frame.current !
+  timer.current @ frame.current !
 ;
 
 : t.i
